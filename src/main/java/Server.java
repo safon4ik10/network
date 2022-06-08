@@ -15,28 +15,29 @@ public class Server {
         ExecutorService executorService = Executors.newFixedThreadPool(500);
 
         System.out.println("server up");
-        try {
-            while (true) {
+        while (true) {
+            try {
                 Socket clientSocket = serverSocket.accept();
                 executorService.submit(() -> receive(clientSocket));
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                serverSocket.close();
             }
-        } catch (IOException e){
-            e.printStackTrace();
-            serverSocket.close();
+
         }
 
     }
 
     public static void receive(Socket socket) {
-        try {
-            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
+        try (PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        ) {
             String input;
             while ((input = bufferedReader.readLine()) != null) {
                 System.out.println("New connection accepted");
                 printWriter.println(String.format("Hi %s, your port is %d", input, socket.getPort()));
-                if (input.equals("end")){
+                if (input.equals("end")) {
                     break;
                 }
             }
